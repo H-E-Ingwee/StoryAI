@@ -377,6 +377,16 @@ function initDashboard() {
     }
   });
 
+  const navButtons = document.querySelectorAll(".btn-sidebar");
+  navButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      navButtons.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      const label = btn.textContent.trim();
+      addActivity("Navigation", `${label} selected`);
+    });
+  });
+
   loadProjects();
 }
 
@@ -624,19 +634,6 @@ function initWorkspace() {
     frameBoard.addEventListener("click", async (e) => {
       const frameId = e.target.closest("[data-frame-id]")?.dataset.frameId;
       if (!frameId) return;
-
-      if (e.target.closest(".frame-delete-btn")) {
-        try {
-          await deleteFrame(frameId);
-          allFrames = allFrames.filter((f) => f.id !== frameId);
-          if (selectedFrameId === frameId) selectedFrameId = null;
-          await renderFrames();
-          if (selectedFrameLabel) selectedFrameLabel.textContent = "No frame selected yet.";
-        } catch (error) {
-          alert("Failed to delete frame: " + error.message);
-        }
-        return;
-      }
 
       if (e.target.closest(".frame-delete-btn")) {
         try {

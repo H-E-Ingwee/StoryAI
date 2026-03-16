@@ -2321,6 +2321,12 @@ section {
     padding: 1.2rem;
   }
 }
+
+.dashboard-glow,
+.workspace-glow,
+.storyboard-glow {
+  pointer-events: none !important;
+}
 .storyboard-page {
   min-height: 100vh;
   padding: 8.5rem 0 4rem;
