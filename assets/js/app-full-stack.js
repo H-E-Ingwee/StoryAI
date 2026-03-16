@@ -378,11 +378,16 @@ function initDashboard() {
   });
 
   const navButtons = document.querySelectorAll(".btn-sidebar");
+  const tabStatus = document.getElementById("dashboardTabStatus");
   navButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
       navButtons.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       const label = btn.textContent.trim();
+      if (tabStatus) {
+        tabStatus.classList.remove("d-none");
+        tabStatus.innerHTML = `<strong>Navigation:</strong> ${label} selected.`;
+      }
       addActivity("Navigation", `${label} selected`);
     });
   });
