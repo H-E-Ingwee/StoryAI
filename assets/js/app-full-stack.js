@@ -394,32 +394,37 @@ function initWorkspace() {
   const newFrameInput = document.getElementById("newFrameInput");
   const addFrameBtn = document.getElementById("addFrameBtn");
   const frameBoard = document.getElementById("frameBoard");
+  const generatePromptBtn = document.getElementById("generatePromptBtn");
+  const savePromptBtn = document.getElementById("savePromptBtn");
+  const selectedFrameLabel = document.getElementById("selectedFrameLabel");
+  const generatedPromptOutput = document.getElementById("generatedPromptOutput");
   const saveWorkspaceBtn = document.getElementById("saveWorkspaceBtn");
   const loadDemoWorkspaceBtn = document.getElementById("loadDemoWorkspaceBtn");
   const clearWorkspaceBtn = document.getElementById("clearWorkspaceBtn");
 
-  const PROJECTS_STORAGE_KEY = "storyai_projects";
   const ACTIVE_PROJECT_KEY = "storyai_active_project_id";
 
   let currentProject = null;
   let allScenes = [];
+  let allFrames = [];
   let selectedSceneId = null;
   let selectedFrameId = null;
 
-  function getActiveProject() {
+  async function getActiveProject() {
     const activeProjectId = localStorage.getItem(ACTIVE_PROJECT_KEY);
     if (!activeProjectId) return null;
     try {
-      const projects = JSON.parse(localStorage.getItem(PROJECTS_STORAGE_KEY) || "[]");
-      return projects.find((p) => p.id === activeProjectId) || null;
-    } catch {
+      const project = await getProject(activeProjectId);
+      return project;
+    } catch (error) {
+      console.error("Failed to load active project by id:", error);
       return null;
     }
   }
 
   async function loadProject() {
     try {
-      const activeProject = getActiveProject();
+      const activeProject = await getActiveProject();
       if (activeProject) {
         currentProject = activeProject;
       } else {
@@ -430,17 +435,22 @@ function initWorkspace() {
         try {
           allScenes = await getScenes(currentProject.id);
           if (allScenes.length > 0) {
-            selectedSceneId = allScenes[0].id;
+            selectedSceneId = selectedSceneId || allScenes[0].id;
+          } else {
+            selectedSceneId = null;
           }
         } catch (error) {
           console.error("Failed to load scenes:", error);
           allScenes = [];
         }
+      } else {
+        allScenes = [];
+        selectedSceneId = null;
       }
 
-      renderWorkspace();
+      await renderWorkspace();
       renderScenes();
-      renderFrames();
+      await renderFrames();
     } catch (error) {
       console.error("Failed to load project:", error);
     }
@@ -483,9 +493,8 @@ function initWorkspace() {
     });
   }
 
-  function renderFrames() {
+  async function renderFrames() {
     if (!frameBoard) return;
-    frameBoard.innerHTML = "";
 
     if (!selectedSceneId) {
       frameBoard.innerHTML = `
@@ -497,11 +506,43 @@ function initWorkspace() {
       return;
     }
 
-    frameBoard.innerHTML = `
-      <div class="mini-card">
-        <strong>Frames loading...</strong>
-      </div>
-    `;
+    try {
+      allFrames = await getFrames(selectedSceneId);
+    } catch (error) {
+      console.error("Failed to load frames:", error);
+      allFrames = [];
+    }
+
+    if (!allFrames.length) {
+      frameBoard.innerHTML = `
+        <div class="mini-card">
+          <strong>No frames yet</strong>
+          <p class="mb-0 mt-2 text-light-emphasis">Add your first frame to storyboard this scene.</p>
+        </div>
+      `;
+      return;
+    }
+
+    frameBoard.innerHTML = allFrames
+      .map((frame) => `
+        <div class="frame-card ${selectedFrameId === frame.id ? "selected" : ""}" data-frame-id="${frame.id}">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <strong>${escapeHtml(frame.title || "Untitled Frame")}</strong>
+              <div class="text-light-emphasis small">Frame ID: ${frame.id.slice(0, 6)}</div>
+            </div>
+            <button class="btn btn-link btn-sm text-danger frame-delete-btn" data-frame-id="${frame.id}">
+              <i class="bi bi-trash3"></i>
+            </button>
+          </div>
+          <p class="mb-1 text-light-emphasis">${escapeHtml(frame.prompt || "No prompt yet")}</p>
+          <div class="d-flex gap-2">
+            <button class="btn btn-outline-dashboard btn-sm select-frame-btn" data-frame-id="${frame.id}">Select</button>
+            <button class="btn btn-soft-dashboard btn-sm" data-action="edit" data-frame-id="${frame.id}">Edit</button>
+          </div>
+        </div>
+      `)
+      .join("");
   }
 
   if (addSceneBtn) {
@@ -547,7 +588,105 @@ function initWorkspace() {
 
       selectedSceneId = sceneItem.dataset.id;
       renderScenes();
-      renderFrames();
+      await renderFrames();
+    });
+  }
+
+  if (addFrameBtn) {
+    addFrameBtn.addEventListener("click", async () => {
+      const title = newFrameInput?.value.trim();
+      if (!title) {
+        alert("Enter a frame title first.");
+        return;
+      }
+      if (!selectedSceneId) {
+        alert("Select a scene first.");
+        return;
+      }
+      try {
+        const frame = await createFrame({ sceneId: selectedSceneId, title, prompt: "" });
+        allFrames.push(frame);
+        selectedFrameId = frame.id;
+        newFrameInput.value = "";
+        await renderFrames();
+        if (selectedFrameLabel) selectedFrameLabel.textContent = `Selected Frame: ${frame.title}`;
+      } catch (error) {
+        alert("Failed to add frame: " + error.message);
+      }
+    });
+  }
+
+  if (frameBoard) {
+    frameBoard.addEventListener("click", async (e) => {
+      const frameId = e.target.closest("[data-frame-id]")?.dataset.frameId;
+      if (!frameId) return;
+
+      if (e.target.closest(".frame-delete-btn")) {
+        try {
+          await deleteFrame(frameId);
+          allFrames = allFrames.filter((f) => f.id !== frameId);
+          if (selectedFrameId === frameId) selectedFrameId = null;
+          await renderFrames();
+          if (selectedFrameLabel) selectedFrameLabel.textContent = "No frame selected yet.";
+        } catch (error) {
+          alert("Failed to delete frame: " + error.message);
+        }
+        return;
+      }
+
+      if (e.target.closest(".select-frame-btn") || e.target.closest(".frame-card")) {
+        selectedFrameId = frameId;
+        const selectedFrame = allFrames.find((f) => f.id === frameId);
+        if (selectedFrameLabel) selectedFrameLabel.textContent = selectedFrame ? `Selected Frame: ${selectedFrame.title}` : "No frame selected yet.";
+        renderScenes();
+        await renderFrames();
+      }
+    });
+  }
+
+  if (generatePromptBtn) {
+    generatePromptBtn.addEventListener("click", () => {
+      const subject = document.getElementById("promptSubject")?.value.trim();
+      const environment = document.getElementById("promptEnvironment")?.value.trim();
+      const lighting = document.getElementById("promptLighting")?.value.trim();
+      const camera = document.getElementById("promptCamera")?.value.trim();
+      const mood = document.getElementById("promptMood")?.value.trim();
+      const style = document.getElementById("promptStyle")?.value.trim();
+
+      let prompt = "";
+      if (subject) prompt += `${subject}`;
+      if (environment) prompt += ` in ${environment}`;
+      if (lighting) prompt += ` under ${lighting}`;
+      if (camera) prompt += ` with ${camera}`;
+      if (mood) prompt += ` mood ${mood}`;
+      if (style) prompt += ` in ${style} style`;
+
+      if (generatedPromptOutput) generatedPromptOutput.textContent = prompt || "Add details above and generate your prompt.";
+    });
+  }
+
+  if (savePromptBtn) {
+    savePromptBtn.addEventListener("click", async () => {
+      if (!selectedFrameId) {
+        alert("Select a frame first to save the prompt.");
+        return;
+      }
+
+      const generatedPrompt = document.getElementById("generatedPromptOutput")?.textContent;
+      if (!generatedPrompt || generatedPrompt.includes("Add details")) {
+        alert("Generate a prompt first.");
+        return;
+      }
+
+      try {
+        const frame = allFrames.find((f) => f.id === selectedFrameId);
+        if (!frame) throw new Error("Selected frame not found");
+        await updateFrame(selectedFrameId, { ...frame, prompt: generatedPrompt });
+        await renderFrames();
+        alert("Prompt saved to selected frame.");
+      } catch (error) {
+        alert("Failed to save prompt: " + error.message);
+      }
     });
   }
 
