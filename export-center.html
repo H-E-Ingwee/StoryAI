@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Export Center | StoryAI by NuruLife Productions</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <link rel="stylesheet" href="assets/css/style.css" />
+  </head>
+  <body data-page="export-center">
+    <nav class="navbar navbar-expand-lg fixed-top story-navbar">
+      <div class="container py-2">
+        <a class="navbar-brand d-flex align-items-center gap-3" href="index.html">
+          <span class="brand-mark"><i class="bi bi-stars text-white"></i></span>
+          <span class="brand-lockup">
+            <span>StoryAI</span>
+            <small>by NuruLife Productions</small>
+          </span>
+        </a>
+
+        <div class="d-flex gap-2">
+          <a href="dashboard.html" class="btn btn-outline-hero">Dashboard</a>
+          <a href="storyboard.html" class="btn btn-soft-hero">Storyboard</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="export-page">
+      <div class="export-glow export-glow-one"></div>
+      <div class="export-glow export-glow-two"></div>
+
+      <div class="container export-shell-wrap">
+        <section class="workspace-banner mb-4">
+          <small>Export Center</small>
+          <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mt-2">
+            <div>
+              <h5 class="mb-1 fw-bold text-white">Prepare your work for presentation and delivery</h5>
+              <p class="mb-0 workspace-banner-text">
+                Package storyboard frames, project summaries, and board outputs in a professional and creator-friendly way.
+              </p>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <span class="chip chip-invert"><i class="bi bi-file-earmark-arrow-down"></i> Export Ready</span>
+              <span class="chip chip-invert"><i class="bi bi-sunrise"></i> NuruLife Owned</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="row g-4 mb-4">
+          <div class="col-md-6 col-xl-3">
+            <div class="stat-card-pro h-100">
+              <div class="stat-icon"><i class="bi bi-file-earmark-pdf"></i></div>
+              <div class="stat-label">PDF Exports</div>
+              <h3 id="exportPdfStat">0</h3>
+              <p class="mb-0">Storyboard sheets and project summaries prepared as PDF outputs.</p>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-xl-3">
+            <div class="stat-card-pro h-100">
+              <div class="stat-icon"><i class="bi bi-grid-3x3-gap"></i></div>
+              <div class="stat-label">Board Sheets</div>
+              <h3 id="exportBoardStat">0</h3>
+              <p class="mb-0">Visual contact-sheet style exports prepared for presentation review.</p>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-xl-3">
+            <div class="stat-card-pro h-100">
+              <div class="stat-icon"><i class="bi bi-journal-richtext"></i></div>
+              <div class="stat-label">Project Summaries</div>
+              <h3 id="exportSummaryStat">0</h3>
+              <p class="mb-0">Written exports combining description, direction, and project metadata.</p>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-xl-3">
+            <div class="stat-card-pro h-100">
+              <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
+              <div class="stat-label">Total Records</div>
+              <h3 id="exportTotalStat">0</h3>
+              <p class="mb-0">All generated export records currently stored in the frontend demo.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="row g-4 mb-4">
+          <div class="col-lg-8">
+            <div class="content-panel h-100">
+              <div class="panel-header">
+                <div>
+                  <div class="section-kicker">Create export</div>
+                  <h2 class="panel-title">Generate a new export record</h2>
+                </div>
+              </div>
+
+              <form id="exportForm" class="mt-3">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">Project name</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="exportProjectName"
+                      placeholder="e.g. Beneath the Silence"
+                      required
+                    />
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">Export type</label>
+                    <select class="form-select" id="exportType" required>
+                      <option value="pdf">Storyboard PDF</option>
+                      <option value="board">Board Contact Sheet</option>
+                      <option value="summary">Project Summary</option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">Audience / Purpose</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="exportAudience"
+                      placeholder="Supervisor review, team pitch, sponsor deck..."
+                    />
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">Version label</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="exportVersion"
+                      placeholder="v1, Final Draft, Review Copy..."
+                    />
+                  </div>
+
+                  <div class="col-12">
+                    <label class="form-label">Export notes</label>
+                    <textarea
+                      class="form-control"
+                      id="exportNotes"
+                      rows="4"
+                      placeholder="Add notes about what this export contains..."
+                    ></textarea>
+                  </div>
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap mt-4">
+                  <button type="submit" class="btn btn-hero">
+                    <i class="bi bi-file-earmark-arrow-down"></i>
+                    Generate Export Record
+                  </button>
+                  <button type="button" class="btn btn-outline-dashboard" id="loadExportDemoBtn">
+                    Load Demo Records
+                  </button>
+                  <button type="button" class="btn btn-soft-dashboard" id="clearExportRecordsBtn">
+                    Clear Records
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div class="col-lg-4">
+            <div class="content-panel h-100">
+              <div class="panel-header">
+                <div>
+                  <div class="section-kicker">Export guidance</div>
+                  <h3 class="panel-title">What should creators export?</h3>
+                </div>
+              </div>
+
+              <div class="insight-stack mt-3">
+                <div class="insight-item">
+                  <h6>Storyboard PDF</h6>
+                  <p>Best for supervisors, collaborators, review meetings, and structured project presentation.</p>
+                </div>
+
+                <div class="insight-item">
+                  <h6>Board Contact Sheet</h6>
+                  <p>Best for quick visual scanning, comparing frame flow, and showing sequence direction.</p>
+                </div>
+
+                <div class="insight-item">
+                  <h6>Project Summary</h6>
+                  <p>Best for communicating the concept, intent, and visual direction in written form.</p>
+                </div>
+              </div>
+
+              <div class="mini-card mt-4 logo-note">
+                <strong>Frontend stage</strong>
+                <p class="mb-0 mt-2 text-light-emphasis">
+                  This version stores export records in local storage. Actual downloadable files can be added next.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="content-panel">
+          <div class="panel-header">
+            <div>
+              <div class="section-kicker">Export history</div>
+              <h3 class="panel-title">Saved export records</h3>
+            </div>
+          </div>
+
+          <div class="row g-3 mt-2">
+            <div class="col-lg-6">
+              <label class="form-label">Search export history</label>
+              <input
+                type="text"
+                class="form-control"
+                id="exportSearchInput"
+                placeholder="Search by project, type, audience, or version"
+              />
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+              <label class="form-label">Filter by type</label>
+              <select class="form-select" id="exportTypeFilter">
+                <option value="all">All types</option>
+                <option value="pdf">Storyboard PDF</option>
+                <option value="board">Board Contact Sheet</option>
+                <option value="summary">Project Summary</option>
+              </select>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+              <label class="form-label">Sort by</label>
+              <select class="form-select" id="exportSortFilter">
+                <option value="newest">Newest first</option>
+                <option value="oldest">Oldest first</option>
+                <option value="title-asc">Project A–Z</option>
+                <option value="title-desc">Project Z–A</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row g-4 mt-1" id="exportRecordsGrid"></div>
+
+          <div id="exportEmptyState" class="empty-state-box mt-4">
+            <div class="empty-state-icon"><i class="bi bi-file-earmark-text"></i></div>
+            <h5>No export records yet</h5>
+            <p>
+              Create your first export record to begin preparing projects for presentation and delivery.
+            </p>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/app.js"></script>
+  </body>
+</html>

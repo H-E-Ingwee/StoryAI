@@ -755,3 +755,504 @@ function initWorkspace() {
     };
   }
 }
+const STORYBOARD_STORAGE_KEY = "storyai_storyboard_cards";
+
+document.addEventListener("DOMContentLoaded", () => {
+  const page = document.body.dataset.page;
+  if (page === "storyboard") {
+    initStoryboard();
+  }
+});
+
+function initStoryboard() {
+  const storyboardGrid = document.getElementById("storyboardGrid");
+  const storyboardEmptyState = document.getElementById("storyboardEmptyState");
+  const searchInput = document.getElementById("storyboardSearchInput");
+  const statusFilter = document.getElementById("storyboardStatusFilter");
+  const sortFilter = document.getElementById("storyboardSortFilter");
+  const loadDemoBtn = document.getElementById("loadStoryboardDemoBtn");
+  const clearBtn = document.getElementById("clearStoryboardBtn");
+  const form = document.getElementById("newStoryboardCardForm");
+
+  const totalStat = document.getElementById("storyboardTotalStat");
+  const draftStat = document.getElementById("storyboardDraftStat");
+  const reviewStat = document.getElementById("storyboardReviewStat");
+  const approvedStat = document.getElementById("storyboardApprovedStat");
+
+  const modalElement = document.getElementById("newStoryboardCardModal");
+  const modal = modalElement ? bootstrap.Modal.getOrCreateInstance(modalElement) : null;
+
+  function getCards() {
+    return JSON.parse(localStorage.getItem(STORYBOARD_STORAGE_KEY) || "[]");
+  }
+
+  function saveCards(cards) {
+    localStorage.setItem(STORYBOARD_STORAGE_KEY, JSON.stringify(cards));
+  }
+
+  function getFilteredCards(cards) {
+    const searchValue = (searchInput?.value || "").toLowerCase().trim();
+    const statusValue = statusFilter?.value || "all";
+    const sortValue = sortFilter?.value || "newest";
+
+    let filtered = [...cards];
+
+    if (searchValue) {
+      filtered = filtered.filter((card) =>
+        card.title.toLowerCase().includes(searchValue) ||
+        card.scene.toLowerCase().includes(searchValue) ||
+        card.prompt.toLowerCase().includes(searchValue)
+      );
+    }
+
+    if (statusValue !== "all") {
+      filtered = filtered.filter((card) => card.status === statusValue);
+    }
+
+    filtered.sort((a, b) => {
+      switch (sortValue) {
+        case "oldest":
+          return new Date(a.createdAt) - new Date(b.createdAt);
+        case "title-asc":
+          return a.title.localeCompare(b.title);
+        case "title-desc":
+          return b.title.localeCompare(a.title);
+        case "newest":
+        default:
+          return new Date(b.createdAt) - new Date(a.createdAt);
+      }
+    });
+
+    return filtered;
+  }
+
+  function renderStats(cards) {
+    totalStat.textContent = cards.length;
+    draftStat.textContent = cards.filter((c) => c.status === "draft").length;
+    reviewStat.textContent = cards.filter((c) => c.status === "review").length;
+    approvedStat.textContent = cards.filter((c) => c.status === "approved").length;
+  }
+
+  function getStatusBadge(status) {
+    if (status === "approved") {
+      return `<span class="status-badge status-completed">Approved</span>`;
+    }
+    if (status === "review") {
+      return `<span class="status-badge status-draft">In Review</span>`;
+    }
+    return `<span class="status-badge status-active">Draft</span>`;
+  }
+
+  function renderCards() {
+    const cards = getCards();
+    const filtered = getFilteredCards(cards);
+
+    renderStats(cards);
+    storyboardGrid.innerHTML = "";
+
+    if (!filtered.length) {
+      storyboardEmptyState.classList.add("show");
+      return;
+    }
+
+    storyboardEmptyState.classList.remove("show");
+
+    filtered.forEach((card) => {
+      const col = document.createElement("div");
+      col.className = "col-md-6 col-xl-4";
+
+      col.innerHTML = `
+        <div class="storyboard-card">
+          <div class="storyboard-card-preview"></div>
+
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <div>
+              <h5 class="mb-1">${escapeHtml(card.title)}</h5>
+              <div class="text-light-emphasis small">${escapeHtml(card.scene)}</div>
+            </div>
+            ${getStatusBadge(card.status)}
+          </div>
+
+          <div class="storyboard-meta mt-3">
+            <span><i class="bi bi-camera-reels"></i> ${escapeHtml(card.camera || "Unspecified")}</span>
+            <span><i class="bi bi-lightbulb"></i> ${escapeHtml(card.lighting || "Unspecified")}</span>
+          </div>
+
+          <p class="storyboard-prompt">${escapeHtml(card.prompt)}</p>
+
+          <div class="storyboard-tags">
+            ${card.mood ? `<span class="frame-tag">${escapeHtml(card.mood)}</span>` : ""}
+            ${card.camera ? `<span class="frame-tag">${escapeHtml(card.camera)}</span>` : ""}
+            ${card.lighting ? `<span class="frame-tag">${escapeHtml(card.lighting)}</span>` : ""}
+          </div>
+
+          <div class="storyboard-actions">
+            <button class="btn btn-outline-dashboard btn-sm" data-action="delete" data-id="${card.id}">
+              Delete
+            </button>
+          </div>
+        </div>
+      `;
+
+      storyboardGrid.appendChild(col);
+    });
+  }
+
+  function deleteCard(id) {
+    const cards = getCards().filter((card) => card.id !== id);
+    saveCards(cards);
+    renderCards();
+  }
+
+  function loadDemoCards() {
+    const existing = getCards();
+    if (existing.length) {
+      const confirmed = confirm("Demo storyboard cards will be added to your current board. Continue?");
+      if (!confirmed) return;
+    }
+
+    const demo = [
+      {
+        id: crypto.randomUUID(),
+        title: "Opening Mood Shot",
+        scene: "Scene 1 — Room at Night",
+        status: "draft",
+        camera: "Wide Shot",
+        mood: "Quiet",
+        lighting: "Soft Shadow",
+        prompt: "A young woman seated by a window in a dim room at night, cinematic mood, wide shot, emotional stillness, realistic film style.",
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: crypto.randomUUID(),
+        title: "Emotional Close-Up",
+        scene: "Scene 1 — Room at Night",
+        status: "review",
+        camera: "Close-Up",
+        mood: "Tense",
+        lighting: "Low Key",
+        prompt: "Close-up of a young woman with emotional tension in her face, shadowed room, cinematic realism, intimate composition.",
+        createdAt: new Date(Date.now() - 86400000).toISOString()
+      },
+      {
+        id: crypto.randomUUID(),
+        title: "Morning Establishing Frame",
+        scene: "Scene 2 — Dawn Street",
+        status: "approved",
+        camera: "Wide Shot",
+        mood: "Hopeful",
+        lighting: "Golden Dawn",
+        prompt: "A quiet empty street at dawn with soft golden light, peaceful atmosphere, wide cinematic shot, realistic concept art.",
+        createdAt: new Date(Date.now() - 2 * 86400000).toISOString()
+      }
+    ];
+
+    saveCards([...existing, ...demo]);
+    renderCards();
+  }
+
+  function clearCards() {
+    const confirmed = confirm("This will remove all storyboard cards from this browser. Continue?");
+    if (!confirmed) return;
+
+    localStorage.removeItem(STORYBOARD_STORAGE_KEY);
+    renderCards();
+  }
+
+  if (form) {
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const newCard = {
+        id: crypto.randomUUID(),
+        title: document.getElementById("cardTitle").value.trim(),
+        scene: document.getElementById("cardScene").value.trim(),
+        status: document.getElementById("cardStatus").value,
+        camera: document.getElementById("cardCamera").value.trim(),
+        mood: document.getElementById("cardMood").value.trim(),
+        lighting: document.getElementById("cardLighting").value.trim(),
+        prompt: document.getElementById("cardPrompt").value.trim(),
+        createdAt: new Date().toISOString()
+      };
+
+      const cards = getCards();
+      cards.unshift(newCard);
+      saveCards(cards);
+      form.reset();
+      modal?.hide();
+      renderCards();
+    });
+  }
+
+  storyboardGrid?.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-action='delete']");
+    if (!button) return;
+    deleteCard(button.dataset.id);
+  });
+
+  [searchInput, statusFilter, sortFilter].forEach((element) => {
+    if (element) {
+      element.addEventListener("input", renderCards);
+      element.addEventListener("change", renderCards);
+    }
+  });
+
+  loadDemoBtn?.addEventListener("click", loadDemoCards);
+  clearBtn?.addEventListener("click", clearCards);
+
+  renderCards();
+}
+const EXPORT_STORAGE_KEY = "storyai_export_records";
+
+document.addEventListener("DOMContentLoaded", () => {
+  const page = document.body.dataset.page;
+  if (page === "export-center") {
+    initExportCenter();
+  }
+});
+
+function initExportCenter() {
+  const exportForm = document.getElementById("exportForm");
+  const exportRecordsGrid = document.getElementById("exportRecordsGrid");
+  const exportEmptyState = document.getElementById("exportEmptyState");
+
+  const exportSearchInput = document.getElementById("exportSearchInput");
+  const exportTypeFilter = document.getElementById("exportTypeFilter");
+  const exportSortFilter = document.getElementById("exportSortFilter");
+
+  const loadExportDemoBtn = document.getElementById("loadExportDemoBtn");
+  const clearExportRecordsBtn = document.getElementById("clearExportRecordsBtn");
+
+  const exportPdfStat = document.getElementById("exportPdfStat");
+  const exportBoardStat = document.getElementById("exportBoardStat");
+  const exportSummaryStat = document.getElementById("exportSummaryStat");
+  const exportTotalStat = document.getElementById("exportTotalStat");
+
+  function getRecords() {
+    return JSON.parse(localStorage.getItem(EXPORT_STORAGE_KEY) || "[]");
+  }
+
+  function saveRecords(records) {
+    localStorage.setItem(EXPORT_STORAGE_KEY, JSON.stringify(records));
+  }
+
+  function getFilteredRecords(records) {
+    const searchValue = (exportSearchInput?.value || "").toLowerCase().trim();
+    const typeValue = exportTypeFilter?.value || "all";
+    const sortValue = exportSortFilter?.value || "newest";
+
+    let filtered = [...records];
+
+    if (searchValue) {
+      filtered = filtered.filter((record) =>
+        record.projectName.toLowerCase().includes(searchValue) ||
+        record.type.toLowerCase().includes(searchValue) ||
+        record.audience.toLowerCase().includes(searchValue) ||
+        record.version.toLowerCase().includes(searchValue) ||
+        record.notes.toLowerCase().includes(searchValue)
+      );
+    }
+
+    if (typeValue !== "all") {
+      filtered = filtered.filter((record) => record.type === typeValue);
+    }
+
+    filtered.sort((a, b) => {
+      switch (sortValue) {
+        case "oldest":
+          return new Date(a.createdAt) - new Date(b.createdAt);
+        case "title-asc":
+          return a.projectName.localeCompare(b.projectName);
+        case "title-desc":
+          return b.projectName.localeCompare(a.projectName);
+        case "newest":
+        default:
+          return new Date(b.createdAt) - new Date(a.createdAt);
+      }
+    });
+
+    return filtered;
+  }
+
+  function typeBadge(type) {
+    if (type === "board") {
+      return `<span class="status-badge status-active">Board Sheet</span>`;
+    }
+    if (type === "summary") {
+      return `<span class="status-badge status-draft">Summary</span>`;
+    }
+    return `<span class="status-badge status-completed">PDF</span>`;
+  }
+
+  function typeLabel(type) {
+    if (type === "board") return "Board Contact Sheet";
+    if (type === "summary") return "Project Summary";
+    return "Storyboard PDF";
+  }
+
+  function renderStats(records) {
+    exportPdfStat.textContent = records.filter((r) => r.type === "pdf").length;
+    exportBoardStat.textContent = records.filter((r) => r.type === "board").length;
+    exportSummaryStat.textContent = records.filter((r) => r.type === "summary").length;
+    exportTotalStat.textContent = records.length;
+  }
+
+  function renderRecords() {
+    const records = getRecords();
+    const filtered = getFilteredRecords(records);
+
+    renderStats(records);
+    exportRecordsGrid.innerHTML = "";
+
+    if (!filtered.length) {
+      exportEmptyState.classList.add("show");
+      return;
+    }
+
+    exportEmptyState.classList.remove("show");
+
+    filtered.forEach((record) => {
+      const col = document.createElement("div");
+      col.className = "col-md-6 col-xl-4";
+
+      col.innerHTML = `
+        <div class="export-record-card">
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <div>
+              <h5 class="mb-1">${escapeHtml(record.projectName)}</h5>
+              <div class="text-light-emphasis small">${escapeHtml(typeLabel(record.type))}</div>
+            </div>
+            ${typeBadge(record.type)}
+          </div>
+
+          <div class="export-record-meta">
+            <span><i class="bi bi-people"></i> ${escapeHtml(record.audience || "General review")}</span>
+            <span><i class="bi bi-bookmark"></i> ${escapeHtml(record.version || "Unlabeled")}</span>
+          </div>
+
+          <p class="export-record-notes">${escapeHtml(record.notes || "No extra notes were added for this export record.")}</p>
+
+          <div class="project-mini-meta">
+            <span><i class="bi bi-clock-history"></i> ${formatDate(record.createdAt)}</span>
+          </div>
+
+          <div class="export-record-actions">
+            <button class="btn btn-outline-dashboard btn-sm" data-action="download" data-id="${record.id}">
+              Mock Download
+            </button>
+            <button class="btn btn-soft-dashboard btn-sm" data-action="delete" data-id="${record.id}">
+              Delete
+            </button>
+          </div>
+        </div>
+      `;
+
+      exportRecordsGrid.appendChild(col);
+    });
+  }
+
+  function deleteRecord(id) {
+    const records = getRecords().filter((record) => record.id !== id);
+    saveRecords(records);
+    renderRecords();
+  }
+
+  function loadDemoRecords() {
+    const existing = getRecords();
+    if (existing.length) {
+      const confirmed = confirm("Demo export records will be added to the current list. Continue?");
+      if (!confirmed) return;
+    }
+
+    const demo = [
+      {
+        id: crypto.randomUUID(),
+        projectName: "Beneath the Silence",
+        type: "pdf",
+        audience: "Supervisor Review",
+        version: "v1",
+        notes: "Storyboard PDF prepared for academic presentation and narrative review.",
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: crypto.randomUUID(),
+        projectName: "Gems in the Ruff",
+        type: "board",
+        audience: "Creative Team Pitch",
+        version: "Review Copy",
+        notes: "Board contact sheet prepared for visual comparison and concept discussion.",
+        createdAt: new Date(Date.now() - 86400000).toISOString()
+      },
+      {
+        id: crypto.randomUUID(),
+        projectName: "Kingdom Stories Pitch Board",
+        type: "summary",
+        audience: "Partner Deck",
+        version: "Final Draft",
+        notes: "Project summary prepared to explain concept intent and visual direction clearly.",
+        createdAt: new Date(Date.now() - 2 * 86400000).toISOString()
+      }
+    ];
+
+    saveRecords([...existing, ...demo]);
+    renderRecords();
+  }
+
+  function clearRecords() {
+    const confirmed = confirm("This will remove all export records from this browser. Continue?");
+    if (!confirmed) return;
+
+    localStorage.removeItem(EXPORT_STORAGE_KEY);
+    renderRecords();
+  }
+
+  if (exportForm) {
+    exportForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const newRecord = {
+        id: crypto.randomUUID(),
+        projectName: document.getElementById("exportProjectName").value.trim(),
+        type: document.getElementById("exportType").value,
+        audience: document.getElementById("exportAudience").value.trim(),
+        version: document.getElementById("exportVersion").value.trim(),
+        notes: document.getElementById("exportNotes").value.trim(),
+        createdAt: new Date().toISOString()
+      };
+
+      const records = getRecords();
+      records.unshift(newRecord);
+      saveRecords(records);
+      exportForm.reset();
+      renderRecords();
+    });
+  }
+
+  exportRecordsGrid?.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-action]");
+    if (!button) return;
+
+    const action = button.dataset.action;
+    const id = button.dataset.id;
+
+    if (action === "delete") {
+      deleteRecord(id);
+    }
+
+    if (action === "download") {
+      alert("Mock download triggered. Real file generation can be added in the next step.");
+    }
+  });
+
+  [exportSearchInput, exportTypeFilter, exportSortFilter].forEach((element) => {
+    if (element) {
+      element.addEventListener("input", renderRecords);
+      element.addEventListener("change", renderRecords);
+    }
+  });
+
+  loadExportDemoBtn?.addEventListener("click", loadDemoRecords);
+  clearExportRecordsBtn?.addEventListener("click", clearRecords);
+
+  renderRecords();
+}

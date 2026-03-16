@@ -2270,3 +2270,174 @@ section {
     padding: 1.2rem;
   }
 }
+.storyboard-page {
+  min-height: 100vh;
+  padding: 8.5rem 0 4rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.storyboard-shell-wrap {
+  position: relative;
+  z-index: 2;
+}
+
+.storyboard-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(42px);
+  z-index: 0;
+  opacity: 0.22;
+}
+
+.storyboard-glow-one {
+  width: 260px;
+  height: 260px;
+  background: rgba(242, 125, 22, 0.18);
+  top: 120px;
+  left: -60px;
+}
+
+.storyboard-glow-two {
+  width: 320px;
+  height: 320px;
+  background: rgba(115, 14, 32, 0.1);
+  bottom: 40px;
+  right: -70px;
+}
+
+.storyboard-card {
+  padding: 1.2rem;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(3, 41, 64, 0.08);
+  box-shadow: var(--shadow-soft);
+  height: 100%;
+}
+
+.storyboard-card-preview {
+  height: 180px;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, transparent, rgba(3, 41, 64, 0.38)),
+    url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80")
+      center/cover;
+  margin-bottom: 1rem;
+}
+
+.storyboard-card h5 {
+  color: var(--brand-blue);
+  font-weight: 800;
+}
+
+.storyboard-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.storyboard-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.storyboard-prompt {
+  color: var(--muted);
+  line-height: 1.75;
+  margin-top: 0.9rem;
+  margin-bottom: 0.9rem;
+}
+
+.storyboard-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.storyboard-actions {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+.export-page {
+  min-height: 100vh;
+  padding: 8.5rem 0 4rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.export-shell-wrap {
+  position: relative;
+  z-index: 2;
+}
+
+.export-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(42px);
+  z-index: 0;
+  opacity: 0.22;
+}
+
+.export-glow-one {
+  width: 260px;
+  height: 260px;
+  background: rgba(242, 125, 22, 0.18);
+  top: 120px;
+  left: -60px;
+}
+
+.export-glow-two {
+  width: 320px;
+  height: 320px;
+  background: rgba(115, 14, 32, 0.1);
+  bottom: 40px;
+  right: -70px;
+}
+
+.export-record-card {
+  padding: 1.2rem;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(3, 41, 64, 0.08);
+  box-shadow: var(--shadow-soft);
+  height: 100%;
+}
+
+.export-record-card h5 {
+  color: var(--brand-blue);
+  font-weight: 800;
+}
+
+.export-record-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  color: var(--muted);
+  font-size: 0.88rem;
+  margin-top: 0.75rem;
+}
+
+.export-record-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.export-record-notes {
+  color: var(--muted);
+  line-height: 1.75;
+  margin-top: 0.9rem;
+  margin-bottom: 0.9rem;
+}
+
+.export-record-actions {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}

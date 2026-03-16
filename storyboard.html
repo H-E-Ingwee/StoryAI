@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Storyboard Board | StoryAI by NuruLife Productions</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <link rel="stylesheet" href="assets/css/style.css" />
+  </head>
+  <body data-page="storyboard">
+    <nav class="navbar navbar-expand-lg fixed-top story-navbar">
+      <div class="container py-2">
+        <a class="navbar-brand d-flex align-items-center gap-3" href="index.html">
+          <span class="brand-mark"><i class="bi bi-stars text-white"></i></span>
+          <span class="brand-lockup">
+            <span>StoryAI</span>
+            <small>by NuruLife Productions</small>
+          </span>
+        </a>
+
+        <div class="d-flex gap-2">
+          <a href="dashboard.html" class="btn btn-outline-hero">Dashboard</a>
+          <a href="workspace.html" class="btn btn-soft-hero">Workspace</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="storyboard-page">
+      <div class="storyboard-glow storyboard-glow-one"></div>
+      <div class="storyboard-glow storyboard-glow-two"></div>
+
+      <div class="container storyboard-shell-wrap">
+        <section class="workspace-banner mb-4">
+          <small>Storyboard View</small>
+          <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mt-2">
+            <div>
+              <h5 class="mb-1 fw-bold text-white">Visual sequence board for creators</h5>
+              <p class="mb-0 workspace-banner-text">
+                Review, shape, and present your visual story with a cleaner frame-by-frame board.
+              </p>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <span class="chip chip-invert"><i class="bi bi-grid-3x3-gap"></i> Storyboard</span>
+              <span class="chip chip-invert"><i class="bi bi-sunrise"></i> NuruLife Owned</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="content-panel mb-4">
+          <div class="panel-header">
+            <div>
+              <div class="section-kicker">Board controls</div>
+              <h2 class="panel-title">Manage storyboard cards</h2>
+            </div>
+            <button class="btn btn-hero" data-bs-toggle="modal" data-bs-target="#newStoryboardCardModal">
+              <i class="bi bi-plus-lg"></i>
+              Add Card
+            </button>
+          </div>
+
+          <div class="row g-3 mt-2">
+            <div class="col-lg-6">
+              <label class="form-label">Search storyboard cards</label>
+              <input
+                type="text"
+                class="form-control"
+                id="storyboardSearchInput"
+                placeholder="Search by title, scene, or prompt"
+              />
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+              <label class="form-label">Filter by status</label>
+              <select class="form-select" id="storyboardStatusFilter">
+                <option value="all">All cards</option>
+                <option value="draft">Draft</option>
+                <option value="review">In Review</option>
+                <option value="approved">Approved</option>
+              </select>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+              <label class="form-label">Sort by</label>
+              <select class="form-select" id="storyboardSortFilter">
+                <option value="newest">Newest first</option>
+                <option value="oldest">Oldest first</option>
+                <option value="title-asc">Title A–Z</option>
+                <option value="title-desc">Title Z–A</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <section class="row g-4 mb-4">
+          <div class="col-md-4 col-xl-3">
+            <div class="stat-card-pro h-100">
+              <div class="stat-icon"><i class="bi bi-collection-play"></i></div>
+              <div class="stat-label">Total Cards</div>
+              <h3 id="storyboardTotalStat">0</h3>
+              <p class="mb-0">All storyboard cards currently saved on the board.</p>
+            </div>
+          </div>
+
+          <div class="col-md-4 col-xl-3">
+            <div class="stat-card-pro h-100">
+              <div class="stat-icon"><i class="bi bi-pencil-square"></i></div>
+              <div class="stat-label">Draft</div>
+              <h3 id="storyboardDraftStat">0</h3>
+              <p class="mb-0">Cards still being shaped and refined visually.</p>
+            </div>
+          </div>
+
+          <div class="col-md-4 col-xl-3">
+            <div class="stat-card-pro h-100">
+              <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
+              <div class="stat-label">In Review</div>
+              <h3 id="storyboardReviewStat">0</h3>
+              <p class="mb-0">Cards awaiting creative review and adjustments.</p>
+            </div>
+          </div>
+
+          <div class="col-md-4 col-xl-3">
+            <div class="stat-card-pro h-100">
+              <div class="stat-icon"><i class="bi bi-check2-circle"></i></div>
+              <div class="stat-label">Approved</div>
+              <h3 id="storyboardApprovedStat">0</h3>
+              <p class="mb-0">Cards ready for presentation and export planning.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="content-panel">
+          <div class="panel-header">
+            <div>
+              <div class="section-kicker">Storyboard board</div>
+              <h3 class="panel-title">Your visual sequence cards</h3>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-dashboard btn-sm" id="loadStoryboardDemoBtn">Load Demo</button>
+              <button class="btn btn-soft-dashboard btn-sm" id="clearStoryboardBtn">Clear All</button>
+            </div>
+          </div>
+
+          <div class="row g-4 mt-1" id="storyboardGrid"></div>
+
+          <div id="storyboardEmptyState" class="empty-state-box mt-4">
+            <div class="empty-state-icon"><i class="bi bi-images"></i></div>
+            <h5>No storyboard cards yet</h5>
+            <p>
+              Add your first storyboard card to begin building the visual flow of your project.
+            </p>
+            <button class="btn btn-hero" data-bs-toggle="modal" data-bs-target="#newStoryboardCardModal">
+              Add First Card
+            </button>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <div class="modal fade" id="newStoryboardCardModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content story-modal">
+          <div class="modal-header border-0 pb-0">
+            <div>
+              <div class="section-kicker">New Storyboard Card</div>
+              <h4 class="modal-title mt-2">Create a storyboard frame card</h4>
+            </div>
+            <button type="button" class="btn-close custom-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+
+          <div class="modal-body pt-3">
+            <form id="newStoryboardCardForm">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Card title</label>
+                  <input type="text" class="form-control" id="cardTitle" placeholder="e.g. Opening Mood Shot" required />
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label">Scene name</label>
+                  <input type="text" class="form-control" id="cardScene" placeholder="e.g. Scene 1 — Room at Night" required />
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label">Status</label>
+                  <select class="form-select" id="cardStatus" required>
+                    <option value="draft">Draft</option>
+                    <option value="review">In Review</option>
+                    <option value="approved">Approved</option>
+                  </select>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label">Camera type</label>
+                  <input type="text" class="form-control" id="cardCamera" placeholder="Wide shot, close-up..." />
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label">Mood</label>
+                  <input type="text" class="form-control" id="cardMood" placeholder="Hopeful, tense, quiet..." />
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label">Lighting</label>
+                  <input type="text" class="form-control" id="cardLighting" placeholder="Soft dawn, moody shadows..." />
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label">Prompt</label>
+                  <textarea
+                    class="form-control"
+                    id="cardPrompt"
+                    rows="4"
+                    placeholder="Describe the shot, environment, mood, and style..."
+                    required
+                  ></textarea>
+                </div>
+              </div>
+
+              <div class="d-flex gap-2 flex-wrap mt-4">
+                <button type="submit" class="btn btn-hero">Save Card</button>
+                <button type="button" class="btn btn-outline-dashboard" data-bs-dismiss="modal">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/app.js"></script>
+  </body>
+</html>
