@@ -5,6 +5,8 @@ const { sequelize } = require("./config/database");
 const models = require("./models");
 const authRoutes = require("./routes/auth.routes");
 const projectRoutes = require("./routes/project.routes");
+const sceneRoutes = require("./routes/scene.routes");
+const frameRoutes = require("./routes/frame.routes");
 
 const app = express();
 
@@ -15,6 +17,8 @@ app.use(express.static(path.join(__dirname, ".")));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectRoutes);
+app.use("/api/scenes", sceneRoutes);
+app.use("/api/frames", frameRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", uptime: process.uptime() });
