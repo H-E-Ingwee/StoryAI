@@ -214,8 +214,9 @@ function initDashboard() {
     const project = projects.find((p) => p.id === projectId);
     if (!project) return;
 
+    localStorage.setItem("storyai_active_project_id", project.id);
     addActivity("Project opened", `You opened ${project.title}.`);
-    alert(`Project workspace for "${project.title}" will be connected in the next build step.`);
+    window.location.href = "workspace.html";
   }
 
   function seedDemoProjects() {
@@ -367,6 +368,17 @@ function initWorkspace() {
   const workspaceProjectMeta = document.getElementById("workspaceProjectMeta");
   const scriptEditor = document.getElementById("scriptEditor");
 
+  const PROJECTS_STORAGE_KEY = "storyai_projects";
+  const ACTIVE_PROJECT_KEY = "storyai_active_project_id";
+
+  function getActiveProject() {
+    const activeProjectId = localStorage.getItem(ACTIVE_PROJECT_KEY);
+    if (!activeProjectId) return null;
+
+    const projects = JSON.parse(localStorage.getItem(PROJECTS_STORAGE_KEY) || "[]");
+    return projects.find((project) => project.id === activeProjectId) || null;
+  }
+
   const newSceneInput = document.getElementById("newSceneInput");
   const addSceneBtn = document.getElementById("addSceneBtn");
   const sceneList = document.getElementById("sceneList");
@@ -498,9 +510,13 @@ function initWorkspace() {
   });
 
   loadDemoWorkspaceBtn?.addEventListener("click", () => {
+    const activeProject = getActiveProject();
+
     workspace = {
-      projectTitle: "Beneath the Silence",
-      projectMeta: "Drama project workspace • Script, scenes, frames, and prompt direction",
+      projectTitle: activeProject?.title || "Beneath the Silence",
+      projectMeta: activeProject
+        ? `${activeProject.genre || "Creative Project"} • ${activeProject.scenes || 0} scenes • ${activeProject.frames || 0} frames • ${activeProject.status || "draft"}`
+        : "Drama project workspace • Script, scenes, frames, and prompt direction",
       script:
         "INT. ROOM - NIGHT\nNova sits by the window in silence. The room is dim, carrying the weight of emotional tension.\n\nEXT. STREET - DAWN\nA quiet road begins to brighten as the first light of morning breaks through.",
       scenes: [
@@ -612,9 +628,17 @@ function initWorkspace() {
   }
 
   function renderWorkspace() {
-    workspaceProjectTitle.textContent = workspace.projectTitle || "Untitled Story Project";
-    workspaceProjectMeta.textContent =
-      workspace.projectMeta || "Build your story through script, scenes, frames, and prompt direction.";
+    const activeProject = getActiveProject();
+
+    if (activeProject) {
+      workspaceProjectTitle.textContent = activeProject.title || "Untitled Story Project";
+      workspaceProjectMeta.textContent =
+        `${activeProject.genre || "Creative Project"} • ${activeProject.scenes || 0} scenes • ${activeProject.frames || 0} frames • ${activeProject.status || "draft"}`;
+    } else {
+      workspaceProjectTitle.textContent = workspace.projectTitle || "Untitled Story Project";
+      workspaceProjectMeta.textContent =
+        workspace.projectMeta || "Build your story through script, scenes, frames, and prompt direction.";
+    }
 
     scriptEditor.value = workspace.script || "";
 
