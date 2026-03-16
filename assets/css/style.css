@@ -2204,15 +2204,66 @@ section {
 
 .frame-board {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1rem;
 }
 
-.frame-item {
-  padding: 1rem;
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.82);
+.frame-card {
+  padding: 0.9rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(3, 41, 64, 0.12);
+  box-shadow: 0 8px 18px rgba(3, 41, 64, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  cursor: default;
+  transition: transform 0.1s ease, border-color 0.2s ease;
+}
+
+.frame-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(242, 125, 22, 0.35);
+}
+
+.frame-card.selected {
+  border-color: rgba(242, 125, 22, 0.8);
+  box-shadow: 0 0 0 2px rgba(242, 125, 22, 0.15);
+}
+
+.frame-card .frame-image {
+  height: 130px;
+  width: 100%;
+  object-fit: cover;
+  border-radius: 12px;
   border: 1px solid rgba(3, 41, 64, 0.08);
-  cursor: pointer;
+}
+
+.frame-card-title {
+  margin: 0;
+  line-height: 1.2;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0d2a3f;
+}
+
+.frame-card-prompt {
+  margin: 0;
+  color: #3c4f60;
+  font-size: 0.85rem;
+  min-height: 38px;
+}
+
+.frame-card-actions {
+  margin-top: 0.35rem;
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.frame-card-actions .btn {
+  font-size: 0.72rem;
+  padding: 0.35rem 0.6rem;
 }
 
 .frame-item.active {

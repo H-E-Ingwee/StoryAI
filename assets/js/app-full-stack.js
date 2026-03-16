@@ -398,6 +398,11 @@ function initWorkspace() {
   const savePromptBtn = document.getElementById("savePromptBtn");
   const selectedFrameLabel = document.getElementById("selectedFrameLabel");
   const generatedPromptOutput = document.getElementById("generatedPromptOutput");
+  const editFrameModalEl = document.getElementById("editFrameModal");
+  const editFrameTitle = document.getElementById("editFrameTitle");
+  const editFramePrompt = document.getElementById("editFramePrompt");
+  const editFrameImageUrl = document.getElementById("editFrameImageUrl");
+  const saveFrameEditsBtn = document.getElementById("saveFrameEditsBtn");
   const saveWorkspaceBtn = document.getElementById("saveWorkspaceBtn");
   const loadDemoWorkspaceBtn = document.getElementById("loadDemoWorkspaceBtn");
   const clearWorkspaceBtn = document.getElementById("clearWorkspaceBtn");
@@ -526,17 +531,16 @@ function initWorkspace() {
     frameBoard.innerHTML = allFrames
       .map((frame) => `
         <div class="frame-card ${selectedFrameId === frame.id ? "selected" : ""}" data-frame-id="${frame.id}">
-          <div class="d-flex justify-content-between align-items-center">
+          ${frame.imageUrl ? `<img class="frame-image" src="${escapeHtml(frame.imageUrl)}" alt="${escapeHtml(frame.title || "Scene frame" )}" />` : ""}
+          <div class="d-flex justify-content-between align-items-start">
             <div>
-              <strong>${escapeHtml(frame.title || "Untitled Frame")}</strong>
+              <h6 class="frame-card-title">${escapeHtml(frame.title || "Untitled Frame")}</h6>
               <div class="text-light-emphasis small">Frame ID: ${frame.id.slice(0, 6)}</div>
             </div>
-            <button class="btn btn-link btn-sm text-danger frame-delete-btn" data-frame-id="${frame.id}">
-              <i class="bi bi-trash3"></i>
-            </button>
+            <button class="btn btn-link btn-sm text-danger frame-delete-btn" data-frame-id="${frame.id}"><i class="bi bi-trash3"></i></button>
           </div>
-          <p class="mb-1 text-light-emphasis">${escapeHtml(frame.prompt || "No prompt yet")}</p>
-          <div class="d-flex gap-2">
+          <p class="frame-card-prompt">${escapeHtml(frame.prompt || "No prompt yet")}</p>
+          <div class="frame-card-actions">
             <button class="btn btn-outline-dashboard btn-sm select-frame-btn" data-frame-id="${frame.id}">Select</button>
             <button class="btn btn-soft-dashboard btn-sm" data-action="edit" data-frame-id="${frame.id}">Edit</button>
           </div>
@@ -634,12 +638,76 @@ function initWorkspace() {
         return;
       }
 
-      if (e.target.closest(".select-frame-btn") || e.target.closest(".frame-card")) {
+      if (e.target.closest(".frame-delete-btn")) {
+        try {
+          await deleteFrame(frameId);
+          allFrames = allFrames.filter((f) => f.id !== frameId);
+          if (selectedFrameId === frameId) {
+            selectedFrameId = null;
+            if (selectedFrameLabel) selectedFrameLabel.textContent = "No frame selected yet.";
+          }
+          await renderFrames();
+        } catch (error) {
+          alert("Failed to delete frame: " + error.message);
+        }
+        return;
+      }
+
+      if (e.target.closest("[data-action='edit']")) {
+        selectedFrameId = frameId;
+        const frame = allFrames.find((f) => f.id === frameId);
+        if (!frame) return;
+        if (editFrameTitle) editFrameTitle.value = frame.title || "";
+        if (editFramePrompt) editFramePrompt.value = frame.prompt || "";
+        if (editFrameImageUrl) editFrameImageUrl.value = frame.imageUrl || "";
+        if (selectedFrameLabel) selectedFrameLabel.textContent = `Selected Frame: ${frame.title}`;
+        if (editFrameModalEl) {
+          const modal = bootstrap.Modal.getOrCreateInstance(editFrameModalEl);
+          modal.show();
+        }
+        return;
+      }
+
+      if (e.target.closest(".select-frame-btn")) {
         selectedFrameId = frameId;
         const selectedFrame = allFrames.find((f) => f.id === frameId);
         if (selectedFrameLabel) selectedFrameLabel.textContent = selectedFrame ? `Selected Frame: ${selectedFrame.title}` : "No frame selected yet.";
         renderScenes();
         await renderFrames();
+      }
+    });
+  }
+
+  if (saveFrameEditsBtn) {
+    saveFrameEditsBtn.addEventListener("click", async () => {
+      if (!selectedFrameId) {
+        alert("Select a frame before saving edits.");
+        return;
+      }
+      const frame = allFrames.find((f) => f.id === selectedFrameId);
+      if (!frame) {
+        alert("Frame not found.");
+        return;
+      }
+
+      const updated = {
+        ...frame,
+        title: editFrameTitle?.value.trim() || frame.title,
+        prompt: editFramePrompt?.value.trim() || frame.prompt,
+        imageUrl: editFrameImageUrl?.value.trim() || frame.imageUrl
+      };
+
+      try {
+        await updateFrame(selectedFrameId, updated);
+        allFrames = allFrames.map((f) => (f.id === selectedFrameId ? updated : f));
+        await renderFrames();
+        if (selectedFrameLabel) selectedFrameLabel.textContent = `Selected Frame: ${updated.title}`;
+        if (editFrameModalEl) {
+          const modal = bootstrap.Modal.getOrCreateInstance(editFrameModalEl);
+          modal.hide();
+        }
+      } catch (error) {
+        alert("Failed to save frame edits: " + error.message);
       }
     });
   }
