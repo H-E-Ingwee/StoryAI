@@ -92,16 +92,16 @@
                 </div>
               </div>
 
-              <form>
+              <form id="signupForm">
                 <div class="row g-3">
                   <div class="col-md-6">
                     <label class="form-label">First name</label>
-                    <input type="text" class="form-control" placeholder="Brian" />
+                    <input type="text" class="form-control" id="firstName" placeholder="Brian" required />
                   </div>
 
                   <div class="col-md-6">
                     <label class="form-label">Last name</label>
-                    <input type="text" class="form-control" placeholder="Ingwee" />
+                    <input type="text" class="form-control" id="lastName" placeholder="Ingwee" required />
                   </div>
 
                   <div class="col-12">
@@ -109,7 +109,9 @@
                     <input
                       type="email"
                       class="form-control"
+                      id="signupEmail"
                       placeholder="creator@example.com"
+                      required
                     />
                   </div>
 
@@ -119,7 +121,9 @@
                       <input
                         type="password"
                         class="form-control password-field"
+                        id="signupPassword"
                         placeholder="Create password"
+                        required
                       />
                       <button type="button" class="password-toggle" aria-label="Toggle password visibility">
                         <i class="bi bi-eye"></i>
@@ -158,7 +162,9 @@
                       <input
                         type="password"
                         class="form-control password-field"
+                        id="confirmPassword"
                         placeholder="Confirm password"
+                        required
                       />
                       <button type="button" class="password-toggle" aria-label="Toggle password visibility">
                         <i class="bi bi-eye"></i>
@@ -189,14 +195,16 @@
                 </div>
 
                 <div class="form-check mt-4">
-                  <input class="form-check-input" type="checkbox" id="termsCheck" />
+                  <input class="form-check-input" type="checkbox" id="termsCheck" required />
                   <label class="form-check-label" for="termsCheck">
-                    I agree to the platform terms and I’m ready to begin building with StoryAI.
+                    I agree to the platform terms and I'm ready to begin building with StoryAI.
                   </label>
                 </div>
 
+                <div id="signupAlert" class="alert alert-danger d-none mt-3" role="alert"></div>
+
                 <div class="d-grid gap-3 mt-4">
-                  <button type="button" class="btn btn-hero" onclick="window.location.href='dashboard.html'">
+                  <button type="submit" class="btn btn-hero">
                     Create Account
                   </button>
 
