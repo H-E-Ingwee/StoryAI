@@ -353,3 +353,405 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+const WORKSPACE_STORAGE_KEY = "storyai_workspace_data";
+
+document.addEventListener("DOMContentLoaded", () => {
+  const page = document.body.dataset.page;
+  if (page === "workspace") {
+    initWorkspace();
+  }
+});
+
+function initWorkspace() {
+  const workspaceProjectTitle = document.getElementById("workspaceProjectTitle");
+  const workspaceProjectMeta = document.getElementById("workspaceProjectMeta");
+  const scriptEditor = document.getElementById("scriptEditor");
+
+  const newSceneInput = document.getElementById("newSceneInput");
+  const addSceneBtn = document.getElementById("addSceneBtn");
+  const sceneList = document.getElementById("sceneList");
+
+  const newFrameInput = document.getElementById("newFrameInput");
+  const addFrameBtn = document.getElementById("addFrameBtn");
+  const frameBoard = document.getElementById("frameBoard");
+
+  const promptSubject = document.getElementById("promptSubject");
+  const promptEnvironment = document.getElementById("promptEnvironment");
+  const promptLighting = document.getElementById("promptLighting");
+  const promptCamera = document.getElementById("promptCamera");
+  const promptMood = document.getElementById("promptMood");
+  const promptStyle = document.getElementById("promptStyle");
+
+  const generatePromptBtn = document.getElementById("generatePromptBtn");
+  const savePromptBtn = document.getElementById("savePromptBtn");
+  const generatedPromptOutput = document.getElementById("generatedPromptOutput");
+  const selectedFrameLabel = document.getElementById("selectedFrameLabel");
+
+  const saveWorkspaceBtn = document.getElementById("saveWorkspaceBtn");
+  const loadDemoWorkspaceBtn = document.getElementById("loadDemoWorkspaceBtn");
+  const clearWorkspaceBtn = document.getElementById("clearWorkspaceBtn");
+
+  let workspace = getWorkspaceData();
+  let selectedSceneId = workspace.selectedSceneId || null;
+  let selectedFrameId = workspace.selectedFrameId || null;
+
+  renderWorkspace();
+
+  addSceneBtn?.addEventListener("click", () => {
+    const title = newSceneInput.value.trim();
+    if (!title) return;
+
+    const scene = {
+      id: crypto.randomUUID(),
+      title,
+      frames: []
+    };
+
+    workspace.scenes.push(scene);
+    selectedSceneId = scene.id;
+    newSceneInput.value = "";
+    persistWorkspace();
+    renderWorkspace();
+  });
+
+  addFrameBtn?.addEventListener("click", () => {
+    const title = newFrameInput.value.trim();
+    if (!title) return;
+
+    const activeScene = workspace.scenes.find((scene) => scene.id === selectedSceneId);
+    if (!activeScene) {
+      alert("Please create or select a scene first.");
+      return;
+    }
+
+    const frame = {
+      id: crypto.randomUUID(),
+      title,
+      prompt: "",
+      tags: []
+    };
+
+    activeScene.frames.push(frame);
+    selectedFrameId = frame.id;
+    newFrameInput.value = "";
+    persistWorkspace();
+    renderWorkspace();
+  });
+
+  sceneList?.addEventListener("click", (event) => {
+    const sceneElement = event.target.closest(".scene-item");
+    if (!sceneElement) return;
+
+    if (event.target.closest(".scene-delete-btn")) {
+      deleteScene(sceneElement.dataset.id);
+      return;
+    }
+
+    selectedSceneId = sceneElement.dataset.id;
+    selectedFrameId = null;
+    persistWorkspace();
+    renderWorkspace();
+  });
+
+  frameBoard?.addEventListener("click", (event) => {
+    const frameElement = event.target.closest(".frame-item");
+    if (!frameElement) return;
+
+    if (event.target.closest(".frame-delete-btn")) {
+      deleteFrame(frameElement.dataset.id);
+      return;
+    }
+
+    selectedFrameId = frameElement.dataset.id;
+    persistWorkspace();
+    renderWorkspace();
+  });
+
+  generatePromptBtn?.addEventListener("click", () => {
+    const prompt = buildPrompt();
+    generatedPromptOutput.textContent = prompt || "Please fill in some prompt fields first.";
+  });
+
+  savePromptBtn?.addEventListener("click", () => {
+    const frame = getSelectedFrame();
+    if (!frame) {
+      alert("Please select a frame first.");
+      return;
+    }
+
+    const prompt = buildPrompt();
+    frame.prompt = prompt;
+    frame.tags = [
+      promptCamera.value.trim(),
+      promptLighting.value.trim(),
+      promptMood.value.trim()
+    ].filter(Boolean);
+
+    persistWorkspace();
+    renderWorkspace();
+  });
+
+  saveWorkspaceBtn?.addEventListener("click", () => {
+    workspace.script = scriptEditor.value;
+    persistWorkspace();
+    alert("Workspace saved successfully.");
+  });
+
+  loadDemoWorkspaceBtn?.addEventListener("click", () => {
+    workspace = {
+      projectTitle: "Beneath the Silence",
+      projectMeta: "Drama project workspace • Script, scenes, frames, and prompt direction",
+      script:
+        "INT. ROOM - NIGHT\nNova sits by the window in silence. The room is dim, carrying the weight of emotional tension.\n\nEXT. STREET - DAWN\nA quiet road begins to brighten as the first light of morning breaks through.",
+      scenes: [
+        {
+          id: crypto.randomUUID(),
+          title: "Scene 1 — Room at Night",
+          frames: [
+            {
+              id: crypto.randomUUID(),
+              title: "Opening Wide Shot",
+              prompt:
+                "A young woman seated by a window in a dim room at night, emotional stillness, cinematic lighting, wide shot, moody atmosphere, realistic film style.",
+              tags: ["Wide Shot", "Moody", "Night"]
+            },
+            {
+              id: crypto.randomUUID(),
+              title: "Close Emotional Beat",
+              prompt:
+                "Close-up of a young woman staring out the window, soft shadow lighting, emotional tension, cinematic realism, intimate camera framing.",
+              tags: ["Close-Up", "Emotion", "Shadow"]
+            }
+          ]
+        },
+        {
+          id: crypto.randomUUID(),
+          title: "Scene 2 — Dawn Street",
+          frames: [
+            {
+              id: crypto.randomUUID(),
+              title: "Morning Establishing Shot",
+              prompt:
+                "A quiet empty street at dawn, soft golden light, peaceful atmosphere, wide cinematic shot, realistic concept art.",
+              tags: ["Dawn", "Wide Shot", "Peaceful"]
+            }
+          ]
+        }
+      ],
+      selectedSceneId: null,
+      selectedFrameId: null
+    };
+
+    selectedSceneId = workspace.scenes[0]?.id || null;
+    selectedFrameId = workspace.scenes[0]?.frames[0]?.id || null;
+    persistWorkspace();
+    renderWorkspace();
+  });
+
+  clearWorkspaceBtn?.addEventListener("click", () => {
+    const confirmed = confirm("Clear this workspace data?");
+    if (!confirmed) return;
+
+    workspace = getDefaultWorkspace();
+    selectedSceneId = null;
+    selectedFrameId = null;
+    persistWorkspace();
+    renderWorkspace();
+  });
+
+  scriptEditor?.addEventListener("input", () => {
+    workspace.script = scriptEditor.value;
+    persistWorkspace();
+  });
+
+  function buildPrompt() {
+    const fields = [
+      promptSubject.value.trim(),
+      promptEnvironment.value.trim(),
+      promptLighting.value.trim(),
+      promptCamera.value.trim(),
+      promptMood.value.trim(),
+      promptStyle.value.trim()
+    ].filter(Boolean);
+
+    return fields.join(", ");
+  }
+
+  function getSelectedFrame() {
+    for (const scene of workspace.scenes) {
+      const frame = scene.frames.find((item) => item.id === selectedFrameId);
+      if (frame) return frame;
+    }
+    return null;
+  }
+
+  function deleteScene(sceneId) {
+    workspace.scenes = workspace.scenes.filter((scene) => scene.id !== sceneId);
+
+    if (selectedSceneId === sceneId) {
+      selectedSceneId = workspace.scenes[0]?.id || null;
+      selectedFrameId = null;
+    }
+
+    persistWorkspace();
+    renderWorkspace();
+  }
+
+  function deleteFrame(frameId) {
+    workspace.scenes = workspace.scenes.map((scene) => ({
+      ...scene,
+      frames: scene.frames.filter((frame) => frame.id !== frameId)
+    }));
+
+    if (selectedFrameId === frameId) {
+      selectedFrameId = null;
+    }
+
+    persistWorkspace();
+    renderWorkspace();
+  }
+
+  function renderWorkspace() {
+    workspaceProjectTitle.textContent = workspace.projectTitle || "Untitled Story Project";
+    workspaceProjectMeta.textContent =
+      workspace.projectMeta || "Build your story through script, scenes, frames, and prompt direction.";
+
+    scriptEditor.value = workspace.script || "";
+
+    renderScenes();
+    renderFrames();
+    hydratePromptFields();
+
+    selectedFrameLabel.textContent = getSelectedFrame()
+      ? getSelectedFrame().title
+      : "No frame selected yet.";
+  }
+
+  function renderScenes() {
+    sceneList.innerHTML = "";
+
+    if (!workspace.scenes.length) {
+      sceneList.innerHTML = `
+        <div class="mini-card">
+          <strong>No scenes yet</strong>
+          <p class="mb-0 mt-2 text-light-emphasis">Add your first scene to begin structuring the story.</p>
+        </div>
+      `;
+      return;
+    }
+
+    workspace.scenes.forEach((scene, index) => {
+      const item = document.createElement("div");
+      item.className = `scene-item ${scene.id === selectedSceneId ? "active" : ""}`;
+      item.dataset.id = scene.id;
+      item.innerHTML = `
+        <div>
+          <h6>${escapeHtml(scene.title)}</h6>
+          <small>${scene.frames.length} frame(s)</small>
+        </div>
+        <button class="scene-delete-btn" title="Delete scene">
+          <i class="bi bi-trash3"></i>
+        </button>
+      `;
+      sceneList.appendChild(item);
+
+      if (!selectedSceneId && index === 0) {
+        selectedSceneId = scene.id;
+      }
+    });
+  }
+
+  function renderFrames() {
+    frameBoard.innerHTML = "";
+
+    const activeScene = workspace.scenes.find((scene) => scene.id === selectedSceneId);
+
+    if (!activeScene) {
+      frameBoard.innerHTML = `
+        <div class="mini-card">
+          <strong>No active scene selected</strong>
+          <p class="mb-0 mt-2 text-light-emphasis">Select or create a scene to begin adding storyboard frames.</p>
+        </div>
+      `;
+      return;
+    }
+
+    if (!activeScene.frames.length) {
+      frameBoard.innerHTML = `
+        <div class="mini-card">
+          <strong>No frames yet</strong>
+          <p class="mb-0 mt-2 text-light-emphasis">Add your first frame for ${escapeHtml(activeScene.title)}.</p>
+        </div>
+      `;
+      return;
+    }
+
+    activeScene.frames.forEach((frame) => {
+      const item = document.createElement("div");
+      item.className = `frame-item ${frame.id === selectedFrameId ? "active" : ""}`;
+      item.dataset.id = frame.id;
+      item.innerHTML = `
+        <div class="frame-top">
+          <div>
+            <h6>${escapeHtml(frame.title)}</h6>
+            <p>${escapeHtml(frame.prompt || "No saved prompt yet.")}</p>
+          </div>
+          <button class="frame-delete-btn" title="Delete frame">
+            <i class="bi bi-trash3"></i>
+          </button>
+        </div>
+        <div class="frame-tags">
+          ${(frame.tags || [])
+            .map((tag) => `<span class="frame-tag">${escapeHtml(tag)}</span>`)
+            .join("")}
+        </div>
+      `;
+      frameBoard.appendChild(item);
+    });
+  }
+
+  function hydratePromptFields() {
+    const frame = getSelectedFrame();
+
+    if (!frame || !frame.prompt) {
+      promptSubject.value = "";
+      promptEnvironment.value = "";
+      promptLighting.value = "";
+      promptCamera.value = "";
+      promptMood.value = "";
+      promptStyle.value = "";
+      generatedPromptOutput.textContent = "Your generated prompt will appear here.";
+      return;
+    }
+
+    generatedPromptOutput.textContent = frame.prompt;
+  }
+
+  function persistWorkspace() {
+    workspace.selectedSceneId = selectedSceneId;
+    workspace.selectedFrameId = selectedFrameId;
+    localStorage.setItem(WORKSPACE_STORAGE_KEY, JSON.stringify(workspace));
+  }
+
+  function getWorkspaceData() {
+    const saved = localStorage.getItem(WORKSPACE_STORAGE_KEY);
+    if (!saved) return getDefaultWorkspace();
+
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return getDefaultWorkspace();
+    }
+  }
+
+  function getDefaultWorkspace() {
+    return {
+      projectTitle: "Untitled Story Project",
+      projectMeta: "Build your story through script, scenes, frames, and prompt direction.",
+      script: "",
+      scenes: [],
+      selectedSceneId: null,
+      selectedFrameId: null
+    };
+  }
+}

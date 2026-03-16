@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Workspace | StoryAI by NuruLife Productions</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <link rel="stylesheet" href="assets/css/style.css" />
+  </head>
+  <body data-page="workspace">
+    <nav class="navbar navbar-expand-lg fixed-top story-navbar">
+      <div class="container py-2">
+        <a class="navbar-brand d-flex align-items-center gap-3" href="index.html">
+          <span class="brand-mark"><i class="bi bi-stars text-white"></i></span>
+          <span class="brand-lockup">
+            <span>StoryAI</span>
+            <small>by NuruLife Productions</small>
+          </span>
+        </a>
+
+        <div class="d-flex gap-2">
+          <a href="dashboard.html" class="btn btn-outline-hero">Back to Dashboard</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="workspace-page">
+      <div class="workspace-glow workspace-glow-one"></div>
+      <div class="workspace-glow workspace-glow-two"></div>
+
+      <div class="container workspace-shell-wrap">
+        <section class="workspace-header-card mb-4">
+          <div class="row g-4 align-items-center">
+            <div class="col-lg-8">
+              <div class="section-kicker">Project Workspace</div>
+              <h1 class="workspace-title" id="workspaceProjectTitle">Untitled Story Project</h1>
+              <p class="workspace-subtitle" id="workspaceProjectMeta">
+                Build your story through script, scenes, frames, and prompt direction.
+              </p>
+
+              <div class="workspace-header-actions">
+                <button class="btn btn-hero" id="saveWorkspaceBtn">
+                  <i class="bi bi-floppy"></i>
+                  Save Workspace
+                </button>
+                <button class="btn btn-outline-dashboard" id="loadDemoWorkspaceBtn">
+                  <i class="bi bi-magic"></i>
+                  Load Demo Workspace
+                </button>
+                <button class="btn btn-soft-dashboard" id="clearWorkspaceBtn">
+                  <i class="bi bi-trash3"></i>
+                  Clear Workspace
+                </button>
+              </div>
+            </div>
+
+            <div class="col-lg-4">
+              <div class="quick-focus-card">
+                <div class="quick-focus-label">Creative flow</div>
+                <h5>Write. Break down. Frame. Refine.</h5>
+                <p class="mb-0">
+                  This is where StoryAI begins to feel like a real studio tool.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="row g-4">
+          <div class="col-xl-3">
+            <section class="content-panel h-100">
+              <div class="panel-header">
+                <div>
+                  <div class="section-kicker">Scenes</div>
+                  <h3 class="panel-title">Scene List</h3>
+                </div>
+              </div>
+
+              <div class="input-group workspace-inline-form mt-3">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="newSceneInput"
+                  placeholder="Add new scene title"
+                />
+                <button class="btn btn-hero btn-sm" id="addSceneBtn">Add</button>
+              </div>
+
+              <div class="scene-list mt-4" id="sceneList"></div>
+
+              <div class="mini-card mt-4">
+                <strong>Scene guidance</strong>
+                <p class="mb-0 mt-2 text-light-emphasis">
+                  Break your story into manageable moments before building frames.
+                </p>
+              </div>
+            </section>
+          </div>
+
+          <div class="col-xl-6">
+            <section class="content-panel mb-4">
+              <div class="panel-header">
+                <div>
+                  <div class="section-kicker">Script</div>
+                  <h3 class="panel-title">Script Editor</h3>
+                </div>
+              </div>
+
+              <div class="mt-3">
+                <label class="form-label">Paste or write your script</label>
+                <textarea
+                  class="form-control workspace-textarea"
+                  id="scriptEditor"
+                  placeholder="Write your script here...&#10;&#10;Example:&#10;INT. ROOM - NIGHT&#10;Nova sits quietly by the window..."
+                ></textarea>
+              </div>
+            </section>
+
+            <section class="content-panel">
+              <div class="panel-header">
+                <div>
+                  <div class="section-kicker">Frames</div>
+                  <h3 class="panel-title">Storyboard Frames</h3>
+                </div>
+              </div>
+
+              <div class="row g-3 mt-2 align-items-end">
+                <div class="col-md-8">
+                  <label class="form-label">Frame title</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="newFrameInput"
+                    placeholder="e.g. Opening Scene Wide Shot"
+                  />
+                </div>
+                <div class="col-md-4">
+                  <button class="btn btn-hero w-100" id="addFrameBtn">Add Frame</button>
+                </div>
+              </div>
+
+              <div class="frame-board mt-4" id="frameBoard"></div>
+            </section>
+          </div>
+
+          <div class="col-xl-3">
+            <section class="content-panel h-100">
+              <div class="panel-header">
+                <div>
+                  <div class="section-kicker">Prompt Builder</div>
+                  <h3 class="panel-title">Frame Prompt</h3>
+                </div>
+              </div>
+
+              <div class="prompt-builder mt-3">
+                <div class="mb-3">
+                  <label class="form-label">Subject</label>
+                  <input type="text" class="form-control prompt-input" id="promptSubject" placeholder="Main subject" />
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Environment</label>
+                  <input type="text" class="form-control prompt-input" id="promptEnvironment" placeholder="Setting / location" />
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Lighting</label>
+                  <input type="text" class="form-control prompt-input" id="promptLighting" placeholder="Soft dawn, moody shadows..." />
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Camera Angle</label>
+                  <input type="text" class="form-control prompt-input" id="promptCamera" placeholder="Wide shot, close-up..." />
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Mood</label>
+                  <input type="text" class="form-control prompt-input" id="promptMood" placeholder="Hopeful, tense, emotional..." />
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Style</label>
+                  <input type="text" class="form-control prompt-input" id="promptStyle" placeholder="Cinematic, realistic..." />
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                  <button class="btn btn-hero" id="generatePromptBtn">Generate Prompt</button>
+                  <button class="btn btn-outline-dashboard" id="savePromptBtn">Save to Selected Frame</button>
+                </div>
+
+                <div class="mini-card mt-4">
+                  <strong>Generated Prompt</strong>
+                  <p class="mb-0 mt-2 text-light-emphasis" id="generatedPromptOutput">
+                    Your generated prompt will appear here.
+                  </p>
+                </div>
+
+                <div class="mini-card mt-3 logo-note">
+                  <strong>Selected Frame</strong>
+                  <p class="mb-0 mt-2 text-light-emphasis" id="selectedFrameLabel">
+                    No frame selected yet.
+                  </p>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/app.js"></script>
+  </body>
+</html>

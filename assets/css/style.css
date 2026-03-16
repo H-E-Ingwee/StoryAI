@@ -2081,3 +2081,192 @@ section {
     padding: 1.2rem;
   }
 }
+.workspace-page {
+  min-height: 100vh;
+  padding: 8.5rem 0 4rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.workspace-shell-wrap {
+  position: relative;
+  z-index: 2;
+}
+
+.workspace-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(42px);
+  z-index: 0;
+  opacity: 0.22;
+}
+
+.workspace-glow-one {
+  width: 260px;
+  height: 260px;
+  background: rgba(242, 125, 22, 0.18);
+  top: 120px;
+  left: -60px;
+}
+
+.workspace-glow-two {
+  width: 320px;
+  height: 320px;
+  background: rgba(115, 14, 32, 0.1);
+  bottom: 40px;
+  right: -70px;
+}
+
+.workspace-header-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  border-radius: 28px;
+  padding: 1.5rem;
+}
+
+.workspace-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: var(--heading);
+  margin-top: 0.45rem;
+}
+
+.workspace-subtitle {
+  color: var(--muted);
+  line-height: 1.85;
+  max-width: 720px;
+  margin-top: 0.8rem;
+}
+
+.workspace-header-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+
+.workspace-inline-form .form-control {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.workspace-inline-form .btn {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.workspace-textarea {
+  min-height: 260px;
+  resize: vertical;
+}
+
+.scene-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.scene-item {
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(3, 41, 64, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+}
+
+.scene-item.active {
+  border-color: rgba(242, 125, 22, 0.4);
+  background: linear-gradient(135deg, rgba(242, 125, 22, 0.14), rgba(3, 41, 64, 0.04));
+}
+
+.scene-item h6 {
+  margin: 0;
+  color: var(--brand-blue);
+  font-weight: 700;
+}
+
+.scene-item small {
+  color: var(--muted);
+}
+
+.scene-delete-btn,
+.frame-delete-btn {
+  border: none;
+  background: transparent;
+  color: var(--brand-maroon);
+  font-size: 1rem;
+}
+
+.frame-board {
+  display: grid;
+  gap: 1rem;
+}
+
+.frame-item {
+  padding: 1rem;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(3, 41, 64, 0.08);
+  cursor: pointer;
+}
+
+.frame-item.active {
+  border-color: rgba(242, 125, 22, 0.4);
+  background: linear-gradient(135deg, rgba(242, 125, 22, 0.12), rgba(3, 41, 64, 0.04));
+}
+
+.frame-item h6 {
+  color: var(--brand-blue);
+  font-weight: 800;
+  margin-bottom: 0.35rem;
+}
+
+.frame-item p {
+  color: var(--muted);
+  margin-bottom: 0.6rem;
+  line-height: 1.7;
+}
+
+.frame-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.frame-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.frame-tag {
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: rgba(3, 41, 64, 0.05);
+  color: var(--brand-blue);
+  border: 1px solid rgba(3, 41, 64, 0.08);
+  font-family: "Montserrat", sans-serif;
+  font-weight: 600;
+}
+
+.prompt-builder .form-label {
+  font-weight: 700;
+}
+
+@media (max-width: 992px) {
+  .workspace-page {
+    padding-top: 7rem;
+  }
+
+  .workspace-header-card,
+  .content-panel {
+    padding: 1.2rem;
+  }
+}
