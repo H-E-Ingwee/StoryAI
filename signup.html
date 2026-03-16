@@ -217,6 +217,39 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/auth-service.js"></script>
     <script src="assets/js/app.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        initPasswordToggles();
+        const signupForm = document.getElementById("signupForm");
+        if (signupForm) {
+          signupForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const firstName = document.getElementById("firstName")?.value || "";
+            const lastName = document.getElementById("lastName")?.value || "";
+            const email = document.getElementById("signupEmail").value;
+            const password = document.getElementById("signupPassword").value;
+            const confirmPassword = document.getElementById("confirmPassword").value;
+            const alertDiv = document.getElementById("signupAlert");
+
+            if (password !== confirmPassword) {
+              alertDiv.textContent = "Passwords do not match.";
+              alertDiv.classList.remove("d-none");
+              return;
+            }
+
+            try {
+              const name = `${firstName} ${lastName}`.trim();
+              await register(name, email, password);
+              window.location.href = "dashboard.html";
+            } catch (error) {
+              alertDiv.textContent = error.message || "Sign up failed. Please try again.";
+              alertDiv.classList.remove("d-none");
+            }
+          });
+        }
+      });
+    </script>
   </body>
 </html>
