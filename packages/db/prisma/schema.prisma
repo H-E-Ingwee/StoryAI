@@ -1,0 +1,507 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// AUTH & USER MODELS
+// ============================================================================
+
+model User {
+  id                    String     @id @default(cuid())
+  email                 String     @unique
+  username              String     @unique
+  passwordHash          String
+  firstName             String?
+  lastName              String?
+  profileImage          String?
+  bio                   String?
+  isEmailVerified       Boolean    @default(false)
+  emailVerificationToken String?
+  resetPasswordToken    String?
+  resetPasswordExpiry   DateTime?
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  deletedAt             DateTime?
+
+  // Relations
+  projects              Project[]
+  sessions              Session[]
+  characterProfiles     CharacterProfile[]
+  stylePresets          StylePreset[]
+  referenceImages       ReferenceImage[]
+  exportRecords         ExportRecord[]
+  generationJobs        GenerationJob[]
+  auditLogs             AuditLog[]
+
+  @@index([email])
+  @@index([createdAt])
+}
+
+model Session {
+  id                 String   @id @default(cuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token              String   @unique
+  expiresAt          DateTime
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// ============================================================================
+// PROJECT & WORKSPACE MODELS
+// ============================================================================
+
+model Project {
+  id                    String     @id @default(cuid())
+  userId                String
+  user                  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title                 String
+  description           String?
+  slug                  String     @unique
+  status                ProjectStatus @default(DRAFT)
+  thumbnailUrl          String?
+  visibility            ProjectVisibility @default(PRIVATE)
+
+  // Script & content
+  scriptDocument        ScriptDocument?
+
+  // Settings
+  globalStyle           String?    // JSON-encoded style preferences
+  globalCharacterRefs   String?    // JSON array of character profile IDs
+  globalLocationRef     String?    // Location profile ID
+
+  // Metadata
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  lastAccessedAt        DateTime   @default(now())
+  archivedAt            DateTime?
+
+  // Relations
+  scenes                Scene[]
+  frames                Frame[]
+  generationJobs        GenerationJob[]
+  exportRecords         ExportRecord[]
+  projectHistory        ProjectHistory[]
+
+  @@unique([userId, slug])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum ProjectStatus {
+  DRAFT
+  IN_PROGRESS
+  COMPLETED
+  ARCHIVED
+}
+
+enum ProjectVisibility {
+  PRIVATE
+  SHARED
+  PUBLIC
+}
+
+model ProjectHistory {
+  id            String    @id @default(cuid())
+  projectId     String
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  action        String    // "created", "updated", "frame_added", etc.
+  changeData    String?   // JSON payload of what changed
+  createdAt     DateTime  @default(now())
+
+  @@index([projectId])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// SCRIPT & SCENE MODELS
+// ============================================================================
+
+model ScriptDocument {
+  id                String     @id @default(cuid())
+  projectId         String     @unique
+  project           Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  rawText           String     // Full script text
+  format            ScriptFormat @default(SCREENPLAY)
+  parsingStatus     ParsingStatus @default(NOT_STARTED)
+  parsingError      String?
+
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@index([projectId])
+}
+
+enum ScriptFormat {
+  SCREENPLAY
+  PROSE
+  OUTLINE
+  COMIC_SCRIPT
+}
+
+enum ParsingStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+model Scene {
+  id                String     @id @default(cuid())
+  projectId         String
+  project           Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  sceneNumber       Int
+  title             String
+  description       String?
+  location          String?
+  timeOfDay         String?    // Morning, Night, etc.
+  mood              String?
+
+  // Parsed content
+  characters        String?    // JSON array of character names
+  actionDescription String?
+  dialogueExcerpt   String?
+
+  // Ordering
+  order             Int
+
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  // Relations
+  frames            Frame[]
+
+  @@unique([projectId, sceneNumber])
+  @@index([projectId, order])
+}
+
+// ============================================================================
+// FRAME & GENERATION MODELS
+// ============================================================================
+
+model Frame {
+  id                    String     @id @default(cuid())
+  projectId             String
+  project               Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sceneId               String?
+  scene                 Scene?     @relation(fields: [sceneId], references: [id], onDelete: SetNull)
+
+  frameNumber           Int        // Order in storyboard
+  title                 String?
+  caption               String?
+  shotType              String?    // Wide, Medium, Close-up, etc.
+
+  // Generation metadata
+  currentPromptId       String?    // ID of active prompt version
+  currentAssetId        String?    // ID of currently displayed generated asset
+
+  // Consistency controls
+  characterProfileIds   String?    // JSON array of locked character profile IDs
+  locationProfileId     String?    // Locked location profile ID
+  stylePresetId         String?    // Locked style preset ID
+  referenceImageIds     String?    // JSON array of reference image IDs
+  previousFrameId       String?    // Reference to previous frame for continuity
+
+  // Generation parameters
+  seed                  String?    // For reproducibility
+  generationModel       String?    // Model used (e.g., "stability-xl")
+  generationParams      String?    // JSON of generation parameters
+
+  status                FrameStatus @default(DRAFT)
+
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+
+  // Relations
+  promptVersions        PromptVersion[]
+  generatedAssets       GeneratedAsset[]
+  generationJobs        GenerationJob[]
+
+  @@index([projectId, frameNumber])
+  @@index([sceneId])
+  @@index([status])
+}
+
+enum FrameStatus {
+  DRAFT
+  PROMPT_READY
+  GENERATING
+  COMPLETED
+  FAILED
+  ARCHIVED
+}
+
+// ============================================================================
+// PROMPT MODELS
+// ============================================================================
+
+model PromptVersion {
+  id                String     @id @default(cuid())
+  frameId           String
+  frame             Frame      @relation(fields: [frameId], references: [id], onDelete: Cascade)
+
+  version           Int        // 1, 2, 3... for revisions
+  subject           String
+  environment       String?
+  composition       String?
+  lighting          String?
+  cameraAngle       String?
+  style             String?
+  mood              String?
+  continuityNotes   String?    // For referencing previous frames
+
+  fullPrompt        String     // Complete concatenated prompt for generation
+  enhancement       String?    // preset used: "cinematic", "comic", "concept_art", etc.
+
+  isActive          Boolean    @default(false)
+  status            PromptStatus @default(DRAFT)
+
+  createdAt         DateTime   @default(now())
+  generatedAssets   GeneratedAsset[]
+
+  @@index([frameId, version])
+  @@index([isActive])
+}
+
+enum PromptStatus {
+  DRAFT
+  APPROVED
+  USED
+  REJECTED
+}
+
+// ============================================================================
+// ASSET & GENERATION MODELS
+// ============================================================================
+
+model GeneratedAsset {
+  id                String     @id @default(cuid())
+  frameId           String
+  frame             Frame      @relation(fields: [frameId], references: [id], onDelete: Cascade)
+  promptId          String
+  prompt            PromptVersion @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  imageUrl          String     // URL to generated image (Supabase/S3)
+  thumbnailUrl      String?
+
+  // Generation metadata
+  seed              String?
+  generationModel   String?
+  generationTime    Float?     // milliseconds
+  estimatedTokens   Int?
+
+  // Tracking
+  status            AssetStatus @default(PENDING)
+  rating            Int?       // 1-5 star rating
+  feedback          String?
+  isRejected        Boolean    @default(false)
+  rejectionReason   String?
+
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@index([frameId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum AssetStatus {
+  PENDING
+  GENERATED
+  APPROVED
+  USED
+  REJECTED
+  FAILED
+}
+
+// ============================================================================
+// GENERATION JOB TRACKING
+// ============================================================================
+
+model GenerationJob {
+  id                String     @id @default(cuid())
+  userId            String
+  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId         String
+  project           Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  frameId           String
+  frame             Frame      @relation(fields: [frameId], references: [id], onDelete: Cascade)
+  promptId          String?
+
+  status            GenerationJobStatus @default(QUEUED)
+  jobType           String     // "image_generation", "prompt_enhancement", etc.
+  provider          String?    // "replicate", "stability", "openai"
+  externalJobId     String?    // ID from external provider for tracking
+
+  progress          Int        @default(0)
+  errorMessage      String?
+
+  startedAt         DateTime?
+  completedAt       DateTime?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([status])
+}
+
+enum GenerationJobStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// ============================================================================
+// CONSISTENCY & REFERENCE MODELS
+// ============================================================================
+
+model CharacterProfile {
+  id                String     @id @default(cuid())
+  userId            String
+  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name              String
+  description       String?
+  referenceImages   String?    // JSON array of image URLs
+  traits            String?    // JSON object of traits
+
+  isReusable        Boolean    @default(true)
+
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@index([userId])
+}
+
+model LocationProfile {
+  id                String     @id @default(cuid())
+  userId            String?    // Null if global/system
+
+  name              String
+  description       String?
+  environment       String?    // Forest, City, Desert, etc.
+  architecture      String?
+  lightingSetup     String?
+  ambience          String?
+  referenceImages   String?    // JSON array of image URLs
+
+  isReusable        Boolean    @default(true)
+  isSystemDefault   Boolean    @default(false)
+
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@index([userId])
+}
+
+model StylePreset {
+  id                String     @id @default(cuid())
+  userId            String
+  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name              String     // "Cinematic", "Comic Book", "Anime", etc.
+  description       String?
+  stylePromptPrefix String
+  stylePromptSuffix String?
+
+  isReusable        Boolean    @default(true)
+  category          String?    // "film", "comic", "animation", "concept_art"
+
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@index([userId])
+}
+
+model ReferenceImage {
+  id                String     @id @default(cuid())
+  userId            String
+  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  imageUrl          String
+  thumbnailUrl      String?
+  title             String?
+  description       String?
+
+  type              String     // "character", "location", "style", "mood", "composition"
+  tags              String?    // JSON array
+
+  createdAt         DateTime   @default(now())
+
+  @@index([userId, type])
+}
+
+// ============================================================================
+// EXPORT MODELS
+// ============================================================================
+
+model ExportRecord {
+  id                String     @id @default(cuid())
+  userId            String
+  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId         String
+  project           Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  exportType        String     // "pdf", "image_sheet", "project_summary"
+  status            ExportStatus @default(PROCESSING)
+
+  fileUrl           String?
+  fileName          String?
+  fileSize          Int?       // bytes
+
+  frameCount        Int        // Number of frames exported
+  metadata          String?    // JSON
+
+  createdAt         DateTime   @default(now())
+  completedAt       DateTime?
+
+  @@index([userId])
+  @@index([projectId])
+}
+
+enum ExportStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// ============================================================================
+// LOGGING & AUDIT MODELS
+// ============================================================================
+
+model AuditLog {
+  id                String     @id @default(cuid())
+  userId            String
+  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  action            String     // "project_created", "frame_generated", etc.
+  resourceType      String?    // "project", "frame", "export"
+  resourceId        String?
+
+  changes           String?    // JSON diff
+  ipAddress         String?
+  userAgent         String?
+
+  createdAt         DateTime   @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
